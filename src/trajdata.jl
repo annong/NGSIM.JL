@@ -201,7 +201,7 @@ function convert_raw_ngsim_to_trajdatas()
         trajdata = convert(Trajdata, tdraw, roadway)
 
         outpath = joinpath(@__DIR__, "../data/trajdata_"*filename)
-        open(io->write(io, MIME"text/plain"(), trajdata), outpath, "w")
+        open(io->write(io, trajdata), outpath, "w")
     end
 end
 
@@ -215,7 +215,7 @@ const TRAJDATA_PATHS = [
                        ]
 
 function load_trajdata(filepath::String)
-    td = open(io->read(io, MIME"text/plain"(), Trajdata), filepath, "r")
+    td = open(io->read(io, Trajdata), filepath, "r")
     td
 end
 load_trajdata(i::Int) = load_trajdata(TRAJDATA_PATHS[i])
