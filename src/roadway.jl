@@ -187,7 +187,7 @@ function write_roadways_from_dxf()
     open(io->write(io, roadway_101), joinpath(@__DIR__, "../data/ngsim_101.txt"), "w")
 end
 
-const ROADWAY_80 = open(io->read(io, MIME"text/plain"(), Roadway), joinpath(@__DIR__, "../data/ngsim_80.txt"), "r")
-const ROADWAY_101 = open(io->read(io, MIME"text/plain"(), Roadway), joinpath(@__DIR__, "../data/ngsim_101.txt"), "r")
+const ROADWAY_80 = open(io->read(io, Roadway), joinpath(@__DIR__, "../data/ngsim_80.txt"), "r")
+const ROADWAY_101 = open(io->read(io, Roadway), joinpath(@__DIR__, "../data/ngsim_101.txt"), "r")
 
 
