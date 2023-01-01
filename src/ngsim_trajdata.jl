@@ -31,12 +31,17 @@ mutable struct NGSIMTrajdata
 
         @assert(isfile(input_path))
 
-       #  df = readtable(input_path, separator=' ', header = false)
+        # df = readtable(input_path, separator=' ', header = false)
+        # df = CSV.read(input_path, DataFrame; header=false)
         df = CSV.read(input_path, DataFrame; delim=" ", ignorerepeated=true,header=false)
 
+        # println(df)
+        
         col_names = [:id, :frame, :n_frames_in_dataset, :epoch, :local_x, :local_y, :global_x, :global_y, :length, :width, :class, :speed, :acc, :lane, :carind_front, :carind_rear, :dist_headway, :time_headway]
         for (i,name) in enumerate(col_names)
-            rename!(df, Symbol(@sprintf("Column%d", i)), name)
+            # rename!(df, Symbol(@sprintf("x%d", i)), name)
+            rename!(df, Dict(Symbol(@sprintf("Column%d", i)) => name))
+            
         end
 
         df[!, :global_heading] = fill(NaN, nrow(df))
@@ -44,7 +49,7 @@ mutable struct NGSIMTrajdata
         car2start = Dict{Int, Int}()
         frame2cars = Dict{Int, Vector{Int}}()
 
-        for (dfind, carid) in enumerate(df[!, :id])
+        for (dfind, carid) in enumerate(df[!,:id])
             if !haskey(car2start, carid)
                 car2start[carid] = dfind
             end
@@ -159,7 +164,7 @@ function pull_vehicle_headings!(trajdata::NGSIMTrajdata;
         end
     end
 
-    @assert(findfirst(v->isnan(v), df[:global_heading]) == 0)
+    @assert(findfirst(v->isnan(v), df[!, :global_heading]) == 0)
 
     trajdata
 end

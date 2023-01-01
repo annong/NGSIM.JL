@@ -7,6 +7,9 @@ using DataFrames
 using Distributions
 using Printf
 using LinearAlgebra
+using Records
+using CSV
+
 
 export
     NGSIMRoadway,

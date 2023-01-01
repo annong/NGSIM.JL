@@ -3,6 +3,59 @@ const SMOOTHING_WIDTH_POS = 0.5 # [s]
 
 include(joinpath(@__DIR__, "trajectory_smoothing.jl"))
 
+# ListRecord(timestep::Float64, ::Type{S}, ::Type{D}, ::Type{I}=Int) where {S,D,I} = ListRecord{S,D,I}(timestep, RecordFrame[], RecordState{S}[], Dict{I,D}())
+# Base.show(io::IO, rec::ListRecord{S,D,I}) where {S,D,I} = @printf(io, "ListRecord{%s, %s, %s}(%d frames)", string(S), string(D), string(I), nframes(rec))
+
+"""
+    Trajdata
+Trajdata is a specific instance of ListRecord defined in Records.jl. It is a collection of Scenes
+"""
+# const Trajdata = ListRecord{VehicleState, VehicleDef, Int}
+# Trajdata(timestep::Float64) = ListRecord(timestep, VehicleState, VehicleDef, Int)
+# Base.show(io::IO, trajdata::Trajdata) = @printf(io, "Trajdata(%d frames)", nframes(trajdata))
+
+
+"""
+    Trajdata
+Trajdata is a specific instance of ListRecord defined in Records.jl. It is a collection of Scenes
+"""
+const Trajdata{S,D,I} = ListRecord{S,D,I}
+
+Trajdata(timestep::Float64, ::Type{S}, ::Type{D}, ::Type{I}=Int) where {S,D,I} = ListRecord{S,D,I}(timestep, RecordFrame[], RecordState{S}[], Dict{I,D}())
+# Base.show(io::IO, trajdata::Trajdata) = @printf(io, "Trajdata(%d frames)", nframes(trajdata))
+
+function Base.write(io::IO, mime::MIME"text/plain", rec::ListRecord)
+
+    show(io, rec)
+    print(io, "\n")
+    @printf(io, "%.16e\n", rec.timestep)
+
+    # defs
+    println(io, length(rec.defs))
+    for (id,def) in rec.defs
+        write(io, id)
+        print(io, "\n")
+        write(io, def)
+        print(io, "\n")
+    end
+
+    # ids & states
+    println(io, length(rec.states))
+    for recstate in rec.states
+        write(io, recstate.id)
+        print(io, "\n")
+        write(io, recstate.state)
+        print(io, "\n")
+    end
+
+    # frames
+    println(io, nframes(rec))
+    for recframe in rec.frames
+        write(io, mime, recframe)
+        print(io, "\n")
+    end
+end
+
 # from "Estimating Acceleration and Lane-Changing
 #       Dynamics Based on NGSIM Trajectory Data"
 function symmetric_exponential_moving_average(
@@ -200,8 +253,14 @@ function convert_raw_ngsim_to_trajdatas()
         tdraw = NGSIM.load_ngsim_trajdata(filepath)
         trajdata = convert(Trajdata, tdraw, roadway)
 
+        println(typeof(trajdata))
+        # println(trajdata.defs)
+        println(trajdata.frames[2])
+        
+
         outpath = joinpath(@__DIR__, "../data/trajdata_"*filename)
-        open(io->write(io, trajdata), outpath, "w")
+        # open(io->write(io, trajdata), outpath, "w")
+        open(io->write(io, MIME"text/plain"(), trajdata), outpath, "w")
     end
 end
 
@@ -215,7 +274,8 @@ const TRAJDATA_PATHS = [
                        ]
 
 function load_trajdata(filepath::String)
-    td = open(io->read(io, Trajdata), filepath, "r")
+    td = open(io->read(io, MIME"text/plain"(), Trajdata), filepath, "r")
+    # td = open(io->read(io, Trajdata), filepath, "r")
     td
 end
 load_trajdata(i::Int) = load_trajdata(TRAJDATA_PATHS[i])
